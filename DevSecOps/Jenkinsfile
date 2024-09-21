@@ -41,15 +41,17 @@ pipeline {
                 sh "trivy image node-app-batch-6"
             }
         }
-        stage("Push to Private Docker Hub Repo") {
-            steps {
-                withCredentials([usernamePassword(credentialsId: "DockerHubCreds", passwordVariable: "dockerPass", usernameVariable: "meghesh117")]) {
-                    sh "docker login -u ${env.dockerUser} -p ${env.dockerPass}"
-                    sh "docker tag node-app-batch-6:latest ${env.dockerUser}/node-app-batch-6:latest"
-                    sh "docker push ${env.dockerUser}/node-app-batch-6:latest"
-                }
-            }
-        }
+        stage('Push to Private Docker Hub Repo') {
+  steps {
+    withCredentials([usernamePassword(credentialsId: 'DockerHubCreds', usernameVariable: 'DOCKERHUB_USERNAME', passwordVariable: 'DOCKERHUB_TOKEN')]) {
+      sh """
+        echo ${DOCKERHUB_TOKEN} | docker login -u ${DOCKERHUB_USERNAME} --password-stdin
+        docker tag node-app-batch-6:latest ${DOCKERHUB_USERNAME}/node-app-batch-6:latest
+        docker push ${DOCKERHUB_USERNAME}/node-app-batch-6:latest
+      """
+    }
+  }
+}
         stage("Deploy") {
             steps {
                 sh "docker-compose down && docker-compose up -d"
