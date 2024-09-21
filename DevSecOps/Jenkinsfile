@@ -13,7 +13,7 @@ pipeline {
         stage("SonarQube Analysis") {
             steps {
                 withSonarQubeEnv("Sonar") {
-                    sh "$SONAR_HOME/bin/sonar-scanner -Dsonar.projectName=nodetodo -Dsonar.projectKey=nodetodo -X"
+                    sh "${SONAR_HOME}/bin/sonar-scanner -Dsonar.projectName=nodetodo -Dsonar.projectKey=nodetodo -X"
                 }
             }
         }
@@ -42,20 +42,23 @@ pipeline {
             }
         }
         stage('Push to Private Docker Hub Repo') {
-  steps {
-    withCredentials([usernamePassword(credentialsId: 'DockerHubCreds', usernameVariable: 'DOCKERHUB_USERNAME', passwordVariable: 'DOCKERHUB_TOKEN')]) {
-      sh """
-        echo ${DOCKERHUB_TOKEN} | docker login -u meghesh117 --password-stdin
-        docker tag node-app-batch-6:latest meghesh117/node-app-batch-6:latest
-        docker push meghesh117/node-app-batch-6:latest
-      """
-    }
-  }
-}
-        stage("Deploy") {
             steps {
-                sh "docker-compose down && docker-compose up -d"
-                echo "App Deployed Successfully"
+                withCredentials([usernamePassword(credentialsId: 'DockerHubCreds', usernameVariable: 'DOCKERHUB_USERNAME', passwordVariable: 'DOCKERHUB_TOKEN')]) {
+                    sh """
+                        echo ${DOCKERHUB_TOKEN} | docker login -u meghesh117 --password-stdin
+                        docker tag node-app-batch-6:latest meghesh117/node-app-batch-6:latest
+                        docker push meghesh117/node-app-batch-6:latest
+                    """
+                }
+            }
+        }
+        stage('Deploy') {
+            steps {
+                sh '''
+                    docker stop $(docker ps -aq) || true
+                    docker rm $(docker ps -aq) || true
+                    docker run -d node-app-batch-6:latest
+                '''
             }
         }
     }
