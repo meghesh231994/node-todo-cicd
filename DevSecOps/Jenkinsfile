@@ -45,9 +45,9 @@ pipeline {
   steps {
     withCredentials([usernamePassword(credentialsId: 'DockerHubCreds', usernameVariable: 'DOCKERHUB_USERNAME', passwordVariable: 'DOCKERHUB_TOKEN')]) {
       sh """
-        echo ${DOCKERHUB_TOKEN} | docker login -u ${DOCKERHUB_USERNAME} --password-stdin
-        docker tag node-app-batch-6:latest ${DOCKERHUB_USERNAME}/node-app-batch-6:latest
-        docker push ${DOCKERHUB_USERNAME}/node-app-batch-6:latest
+        echo ${DOCKERHUB_TOKEN} | docker login -u meghesh117 --password-stdin
+        docker tag node-app-batch-6:latest meghesh117/node-app-batch-6:latest
+        docker push meghesh117/node-app-batch-6:latest
       """
     }
   }
